@@ -1,11 +1,17 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("io.realm.kotlin")
+    id("kotlin-kapt")
 }
 
 android {
     namespace = "com.krupal.assignmentradiusagent"
     compileSdk = 33
+
+    buildFeatures {
+        dataBinding = true
+    }
 
     defaultConfig {
         applicationId = "com.krupal.assignmentradiusagent"
@@ -44,4 +50,12 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    implementation("io.realm.kotlin:library-base:1.8.0") // Add to use local realm (no sync)
+    implementation("io.realm.kotlin:library-sync:1.8.0")// Add to use Device Sync
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    implementation("io.reactivex.rxjava3:rxjava:3.1.6")
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
 }
