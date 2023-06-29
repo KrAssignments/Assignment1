@@ -10,7 +10,9 @@ android {
     compileSdk = 33
 
     buildFeatures {
+        viewBinding = true
         dataBinding = true
+        buildConfig = true
     }
 
     defaultConfig {
@@ -33,11 +35,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 }
 
@@ -51,11 +53,25 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    implementation("io.realm.kotlin:library-base:1.8.0") // Add to use local realm (no sync)
-    implementation("io.realm.kotlin:library-sync:1.8.0")// Add to use Device Sync
+    val realm = "1.8.0"
+    implementation("io.realm.kotlin:library-base:$realm")
+    implementation("io.realm.kotlin:library-sync:$realm")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
 
-    implementation("io.reactivex.rxjava3:rxjava:3.1.6")
+    val retrofit = "2.9.0"
+    implementation("com.squareup.retrofit2:retrofit:$retrofit")
+    implementation("com.squareup.retrofit2:adapter-rxjava3:$retrofit")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofit")
+
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
+
+    implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+
+    val workVersion = "2.8.1"
+    implementation("androidx.work:work-runtime-ktx:$workVersion")
+    implementation("androidx.work:work-rxjava3:$workVersion")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.1.0")
 }
