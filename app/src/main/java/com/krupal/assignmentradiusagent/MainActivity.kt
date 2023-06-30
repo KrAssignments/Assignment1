@@ -6,29 +6,42 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import com.krupal.assignmentradiusagent.database.model.FacilityTable
-import com.krupal.assignmentradiusagent.databinding.ActivityMainBinding
-import com.krupal.assignmentradiusagent.presenter.MainContract
-import com.krupal.assignmentradiusagent.service.FacilitiesDownloadService
+import com.krupal.app_domain.entity.ExclusionEntity
+import com.krupal.app_domain.entity.FacilityEntity
 
-class MainActivity : AppCompatActivity(), MainContract.View {
+import com.krupal.assignmentradiusagent.databinding.ActivityMainBinding
+import com.krupal.app_domain.presenter.FacilitiesPresenter
+import com.krupal.app_domain.presenter.FacilitiesContract
+
+class MainActivity : AppCompatActivity(), FacilitiesContract.View {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: MainListAdapter
-    private lateinit var presenter: MainContract.Presenter
+    private val presenter: FacilitiesPresenter by lazy { FacilitiesPresenter(application) }
+    private val propertyType = "Property Type"
+    private var facilityId : Int? = null
+    private var optionId : Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         adapter = MainListAdapter(this)
+        presenter.setView(this)
 
-        presenter = object : MainContract
+        with(binding){
+            rList.layoutManager = LinearLayoutManager(this@MainActivity)
+            rList.adapter = adapter
+            btReset.setOnClickListener {
+                adapter.resetSelection()
+            }
+            btSubmit.setOnClickListener {
+                adapter.resetSelection()
+            }
+        }
+
+        generateRequest(false)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -39,7 +52,7 @@ class MainActivity : AppCompatActivity(), MainContract.View {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_reload -> {
-                generateRequest()
+                generateRequest(true)
                 return true
             }
 
@@ -47,37 +60,37 @@ class MainActivity : AppCompatActivity(), MainContract.View {
         }
     }
 
-    private fun generateRequest() {
-        val request = OneTimeWorkRequest.Builder(FacilitiesDownloadService::class.java)
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
-        WorkManager.getInstance(this)
-            .enqueueUniqueWork("request", ExistingWorkPolicy.REPLACE, request)
+    private fun generateRequest(force: Boolean) {
+        presenter.getFacilitiesFromRemote(force)
+        presenter.getFacilitiesFromLocal(type = propertyType)
     }
 
     override fun showProgressDialog(showProgress: Boolean) {
-        with(binding){
+        with(binding) {
             progressCard.isVisible = showProgress
             rList.isVisible = showProgress.not()
-            text.isVisible = showProgress.not()
         }
 
     }
+
     override fun showError(message: CharSequence?) {
         Snackbar.make(binding.content, "Error: $message", Snackbar.LENGTH_SHORT).show()
     }
 
-    override fun onFacilitiesLoaded(facilityTable: List<FacilityTable>) {
-        adapter.updateData(facilityTable)
+    override fun onFacilitiesLoaded(
+        facilityTable: List<FacilityEntity>,
+        exclusionList: List<ExclusionEntity>
+    ) {
+        adapter.updateData(facilityTable, exclusionList)
     }
 
     override fun onFacilityLoadFailure(exception: Exception) {
-        adapter.updateData(arrayListOf())
+        adapter.updateData(arrayListOf(), arrayListOf())
         showError(exception.message)
     }
 
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
+    }
 }

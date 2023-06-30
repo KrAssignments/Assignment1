@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "AssignmentRadiusAgent"
 include(":app")
+include(":app_domain")
+include(":app_data")
